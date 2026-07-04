@@ -1,0 +1,21 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "app.lawnchair.play.debug",
+  "variantName": "lawnWithQuickstepPlayDebug",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 1600010501,
+      "versionName": "16.Dev.(0000000)",
+      "outputFile": "SuppinesHome.16.Dev.(0000000).play.apk"
+    }
+  ],
+  "elementType": "File",
+  "minSdkVersionForDexing": 26
+}
