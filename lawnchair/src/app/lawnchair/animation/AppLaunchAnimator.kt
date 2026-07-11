@@ -21,6 +21,7 @@ import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.palette.graphics.Palette
+import app.lawnchair.preferences2.firstCached
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.Launcher
 import com.android.launcher3.Utilities
@@ -48,7 +49,23 @@ class AppLaunchAnimator(private val launcher: Launcher) {
         }
         openAnimator = null
         removeCard("open")
+        openOriginalView?.let { v ->
+            v.alpha = 1f
+            v.scaleX = 1f
+            v.scaleY = 1f
+            v.translationY = 0f
+            v.visibility = View.VISIBLE
+        }
         openOriginalView = null
+        originalView?.let { v ->
+            v.alpha = 1f
+            v.scaleX = 1f
+            v.scaleY = 1f
+            v.translationY = 0f
+            v.visibility = View.VISIBLE
+        }
+        originalView = null
+        appLaunched = false
     }
 
     private fun cancelClose() {
@@ -62,6 +79,7 @@ class AppLaunchAnimator(private val launcher: Launcher) {
             v.scaleX = 1f
             v.scaleY = 1f
             v.translationY = 0f
+            v.visibility = View.VISIBLE
         }
         returnTarget = null
         removeCard("close")
@@ -88,6 +106,7 @@ class AppLaunchAnimator(private val launcher: Launcher) {
     private var openOriginalView: View? = null
     private var openIconCX = 0f
     private var openIconCY = 0f
+    private var appLaunched = false
 
     private fun animateCloseBack(card: View, targetView: View, iconCX: Float, iconCY: Float, wasCardSize: Int) {
         val bg = card.background as? GradientDrawable
@@ -139,6 +158,7 @@ class AppLaunchAnimator(private val launcher: Launcher) {
             }
         }
 
+        appLaunched = false
         originalView = v
         openOriginalView = v
 
@@ -170,7 +190,8 @@ class AppLaunchAnimator(private val launcher: Launcher) {
         val screenH = dragLayer.height
         val cardSize = maxOf(iconW, iconH)
         val startCorner = cardSize / 2f
-        val fullScale = maxOf(screenW.toFloat() / cardSize, screenH.toFloat() / cardSize)
+        val fullScaleY = screenH.toFloat() / cardSize
+        val fullScaleX = screenW.toFloat() / cardSize
 
         val (primaryColor, secondaryColor) = extractColors(iconDrawable)
 
@@ -223,26 +244,45 @@ class AppLaunchAnimator(private val launcher: Launcher) {
             }
         }
 
-        val moveAnim = ObjectAnimator.ofPropertyValuesHolder(card,
+        val openAnim = ObjectAnimator.ofPropertyValuesHolder(card,
+            PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, fullScaleX),
+            PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, fullScaleY),
             PropertyValuesHolder.ofFloat(View.X, iconCX - cardSize / 2f, centerX - cardSize / 2f),
             PropertyValuesHolder.ofFloat(View.Y, iconCY - cardSize / 2f, centerY - cardSize / 2f),
-            PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, fullScale),
-            PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, fullScale),
         ).apply {
             duration = openDuration()
             interpolator = easeOut
         }
 
         val set = AnimatorSet()
-        set.playTogether(moveAnim, cornerAnim)
+        set.playTogether(openAnim, cornerAnim)
+
+        val isSmooth = try {
+            val prefs = app.lawnchair.preferences2.PreferenceManager2.getInstance(launcher)
+            prefs.animationType.firstCached() == AnimationType.SMOOTH
+        } catch (e: Exception) {
+            false
+        }
+
         set.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
-                onLaunch.run()
                 removeCard("open")
+                if (isSmooth || !appLaunched) {
+                    appLaunched = true
+                    onLaunch.run()
+                }
                 v.alpha = 1f
                 openAnimator = null
             }
         })
+        if (!isSmooth) {
+            openAnim.addUpdateListener {
+                if (it.animatedFraction >= 0.35f && !appLaunched) {
+                    appLaunched = true
+                    onLaunch.run()
+                }
+            }
+        }
         set.start()
         openAnimator = set
     }
@@ -280,7 +320,8 @@ class AppLaunchAnimator(private val launcher: Launcher) {
         val screenH = dragLayer.height
         val cardSize = maxOf(iconW, iconH)
         val endCorner = cardSize / 2f
-        val fullScale = maxOf(screenW.toFloat() / cardSize, screenH.toFloat() / cardSize)
+        val fullScaleY = screenH.toFloat() / cardSize
+        val fullScaleX = screenW.toFloat() / cardSize
         val centerX = screenW / 2f
         val centerY = screenH / 2f
 
@@ -302,8 +343,8 @@ class AppLaunchAnimator(private val launcher: Launcher) {
             y = centerY - cardSize / 2f
             pivotX = cardSize / 2f
             pivotY = cardSize / 2f
-            scaleX = fullScale
-            scaleY = fullScale
+            scaleX = fullScaleX
+            scaleY = fullScaleY
             background = cardBg
             clipToOutline = true
             isClickable = false
@@ -338,8 +379,8 @@ class AppLaunchAnimator(private val launcher: Launcher) {
 
         val shrinkAnim = ObjectAnimator.ofPropertyValuesHolder(card,
             PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, 0f, -300f, 0f),
-            PropertyValuesHolder.ofFloat(View.SCALE_X, fullScale, 0.4f),
-            PropertyValuesHolder.ofFloat(View.SCALE_Y, fullScale, 0.4f),
+            PropertyValuesHolder.ofFloat(View.SCALE_X, fullScaleX, 0.4f),
+            PropertyValuesHolder.ofFloat(View.SCALE_Y, fullScaleY, 0.4f),
             PropertyValuesHolder.ofFloat(View.X, centerX - cardSize / 2f, iconCX - cardSize / 2f),
             PropertyValuesHolder.ofFloat(View.Y, centerY - cardSize / 2f, iconCY - cardSize / 2f),
         ).apply {
@@ -379,8 +420,14 @@ class AppLaunchAnimator(private val launcher: Launcher) {
         val v = if (kind == "open") openCardView else closeCardView
         if (kind == "open") openCardView = null else closeCardView = null
         if (v != null) {
+            v.alpha = 1f
+            v.scaleX = 1f
+            v.scaleY = 1f
+            v.translationY = 0f
+            v.visibility = View.GONE
             val parent = v.parent as? ViewGroup
             parent?.removeView(v)
         }
     }
+
 }

@@ -41,7 +41,9 @@ data class IconAnimationData(
 ) {
 
     companion object Factory {
-        private const val ICON_DELAY_INCREMENT = 5
+        // ColorOS 15 style cascade: the icons need a visible gap between them as they fly out of
+        // the folder icon, rather than moving as one block.
+        private const val ICON_DELAY_INCREMENT = 60
 
         /**
          * Animates the icons within the folder. Icons start at the Preview Icon scale and then are

@@ -20,9 +20,13 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Color
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.util.FloatProperty
 import android.util.Property
 import android.view.View
@@ -51,12 +55,17 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
         private const val LAUNCHER_SCALE = 0.975f
         private const val FOLDER_NAME_ALPHA_DURATION = 32
         private const val LARGE_FOLDER_FOOTER_DURATION = 128
-        private const val STIFFNESS_SHAPE_POSITION = 380f
-        private const val DAMPING_SHAPE_POSITION = 0.8f
+        private const val STIFFNESS_SHAPE_POSITION = 200f
+        private const val DAMPING_SHAPE_POSITION = 0.6f
         private const val STIFFNESS_ALPHA = 1600f
         private const val DAMPING_ALPHA = 0.9f
         private const val STIFFNESS_LAUNCHER_SCRIM = 380f
         private const val DAMPING_LAUNCHER_SCRIM = 0.98f
+
+        /** Frosted backdrop behind an open folder. */
+        private const val FOLDER_BLUR_RADIUS_DP = 18f
+        private const val MIN_BLUR_RADIUS_DP = 0.5f
+        private const val FOLDER_BLUR_DURATION = 300L
 
         /**
          * Factory method to take data calculated from [FolderAnimationSpringBuilderManager], and
@@ -74,12 +83,7 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
             addFolderScaleAndTranslateAnimators(folder, animatorSet, folderAnimData)
             addClipRevealAnimators(folder, animatorSet, clipRevealData)
             addAlphaAndColorAnimators(folder, animatorSet, folderAnimData)
-            addScrimAnimators(
-                folder.context,
-                animatorSet,
-                folderAnimData.isOpening,
-                launcherDelegate,
-            )
+
             iconAnimData.forEach { addContentIconAnimators(folder.context, animatorSet, it) }
             return FolderSpringAnimatorSet(animatorSet)
         }
@@ -378,7 +382,65 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                 property = SCALE_PROPERTY,
                 view = hotseat,
             )
+            addBackgroundBlurAnimator(context, animatorSet, isOpening, workspace, hotseat)
             animatorSet.addListener(FolderScrimAnimationListener(scrimView, isOpening, launcher))
+        }
+
+        /**
+         * ColorOS 15 style frosted backdrop: blurs the workspace and hotseat behind the open folder.
+         *
+         * RenderEffect rejects a zero radius, so the effect is cleared outright at the bottom of
+         * the range rather than being driven to 0.
+         */
+        private fun addBackgroundBlurAnimator(
+            context: Context,
+            animatorSet: AnimatorSet,
+            isOpening: Boolean,
+            workspace: View?,
+            hotseat: View?,
+        ) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+            val targets = listOfNotNull(workspace, hotseat)
+            if (targets.isEmpty()) return
+
+            val density = context.resources.displayMetrics.density
+            val maxRadius = FOLDER_BLUR_RADIUS_DP * density
+            val minRadius = MIN_BLUR_RADIUS_DP * density
+
+            val clearBlur = { targets.forEach { it.setRenderEffect(null) } }
+
+            val blurAnimator = ValueAnimator.ofFloat(
+                if (isOpening) 0f else maxRadius,
+                if (isOpening) maxRadius else 0f,
+            ).apply {
+                duration = FOLDER_BLUR_DURATION
+                addUpdateListener { anim ->
+                    val radius = anim.animatedValue as Float
+                    if (radius <= minRadius) {
+                        clearBlur()
+                    } else {
+                        val effect =
+                            RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
+                        targets.forEach { it.setRenderEffect(effect) }
+                    }
+                }
+            }
+            blurAnimator.addListener(object : AnimatorListenerAdapter() {
+                private var cancelled = false
+
+                override fun onAnimationCancel(animation: Animator) {
+                    cancelled = true
+                }
+
+                override fun onAnimationEnd(animation: Animator) {
+                    // Drop the effect whenever the folder is leaving, and also when an opening
+                    // animation is interrupted, so a stale blur can never outlive the folder.
+                    if (!isOpening || cancelled) {
+                        clearBlur()
+                    }
+                }
+            })
+            animatorSet.play(blurAnimator)
         }
 
         /**
@@ -405,11 +467,24 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                         startDelay = (if (isOpening) iconDelay + 100 else iconDelay).toLong()
                     }
                 animatorSet.play(anim)
-                if (!itemsInPreview.contains(icon)) {
+
+                val parentCenterX = (icon.parent as? View)?.width?.div(2f) ?: 0f
+                val parentCenterY = (icon.parent as? View)?.height?.div(2f) ?: 0f
+                val iconCenterX = icon.x + icon.width / 2f
+                val iconCenterY = icon.y + icon.height / 2f
+                val centerDistX = (parentCenterX - iconCenterX) * 1.2f
+                val centerDistY = (parentCenterY - iconCenterY) * 1.2f
+
+                val startX = if (isOpening) centerDistX else xDistance
+                val startY = if (isOpening) centerDistY else yDistance
+                val startAlpha = if (isOpening && !itemsInPreview.contains(icon)) 0f else icon.alpha
+                val startScale = if (isOpening) initialIconScale else icon.scaleX
+
+                if (isOpening && !itemsInPreview.contains(icon)) {
                     playSpringAnimation(
                         context = context,
                         animatorSet = animatorSet,
-                        isOpening = isOpening,
+                        isOpening = true,
                         startDelay = iconDelay,
                         stiffness = STIFFNESS_ALPHA,
                         damping = DAMPING_ALPHA,
@@ -427,7 +502,7 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                     startDelay = iconDelay,
                     stiffness = STIFFNESS_SHAPE_POSITION,
                     damping = DAMPING_SHAPE_POSITION,
-                    startValue = xDistance,
+                    startValue = startX,
                     endValue = 0f,
                     minVisibleChange = MIN_VISIBLE_CHANGE_PIXELS,
                     property = View.TRANSLATION_X,
@@ -440,7 +515,7 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                     startDelay = iconDelay,
                     stiffness = STIFFNESS_SHAPE_POSITION,
                     damping = DAMPING_SHAPE_POSITION,
-                    startValue = yDistance,
+                    startValue = startY,
                     endValue = 0f,
                     minVisibleChange = MIN_VISIBLE_CHANGE_PIXELS,
                     property = View.TRANSLATION_Y,
@@ -453,7 +528,7 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                     startDelay = iconDelay,
                     stiffness = STIFFNESS_SHAPE_POSITION,
                     damping = DAMPING_SHAPE_POSITION,
-                    startValue = initialIconScale,
+                    startValue = startScale,
                     endValue = 1f,
                     minVisibleChange = MIN_VISIBLE_CHANGE_SCALE,
                     property = SCALE_PROPERTY,
@@ -462,9 +537,9 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                 animatorSet.addListener(
                     getIconAnimatorListener(
                         icon = icon,
-                        xDistance = xDistance,
-                        yDistance = yDistance,
-                        initialScale = initialIconScale,
+                        xDistance = startX,
+                        yDistance = startY,
+                        initialScale = startScale,
                         itemsInPreview = itemsInPreview,
                         isOpening = isOpening,
                     )

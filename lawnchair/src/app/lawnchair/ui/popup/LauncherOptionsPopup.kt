@@ -25,6 +25,8 @@ object LauncherOptionsPopup {
         LauncherOptionPopupItem("home_settings", true),
         LauncherOptionPopupItem("sys_settings", false),
         LauncherOptionPopupItem("default_page", true),
+        LauncherOptionPopupItem("active_player", true),
+        LauncherOptionPopupItem("animations", true),
     )
 
     fun restoreMissingPopupOptions(
@@ -59,6 +61,8 @@ object LauncherOptionsPopup {
         onStartWallpaperPicker: (View) -> Boolean,
         onStartWidgetsMenu: (View) -> Boolean,
         onStartHomeSettings: (View) -> Boolean,
+        onOpenActivePlayer: ((View) -> Boolean)? = null,
+        onOpenAnimations: ((View) -> Boolean)? = null,
     ): ArrayList<OptionItem> {
         val prefs2 = getInstance(launcher!!)
         val lockHomeScreen = prefs2.lockHomeScreen.firstCached()
@@ -133,6 +137,20 @@ object LauncherOptionsPopup {
                 R.drawable.ic_home_pin,
                 LauncherEvent.IGNORE,
                 ::setAsDefaultHomePage,
+            ),
+            "active_player" to OptionItem(
+                launcher,
+                R.string.active_player,
+                R.drawable.ic_music_note,
+                LauncherEvent.IGNORE,
+                onOpenActivePlayer ?: { false },
+            ),
+            "animations" to OptionItem(
+                launcher,
+                R.string.animations_label,
+                R.drawable.ic_gestures,
+                LauncherEvent.IGNORE,
+                onOpenAnimations ?: { false },
             ),
         )
 
@@ -209,6 +227,16 @@ object LauncherOptionsPopup {
             "default_page" -> LauncherOptionMetadata(
                 label = R.string.set_default_home_page,
                 icon = R.drawable.ic_home_pin,
+            )
+
+            "active_player" -> LauncherOptionMetadata(
+                label = R.string.active_player,
+                icon = R.drawable.ic_music_note,
+            )
+
+            "animations" -> LauncherOptionMetadata(
+                label = R.string.animations_label,
+                icon = R.drawable.ic_gestures,
             )
 
             else -> throw IllegalArgumentException("invalid popup option")

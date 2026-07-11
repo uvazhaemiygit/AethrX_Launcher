@@ -387,7 +387,7 @@
     <string name="torch_status_on">Lampe de poche activée</string>
     <string name="torch_action_off">Appuyez pour l\'éteindre</string>
     <!-- Onboarding strings -->
-    <string name="onboarding_open_settings_title">Configurez votre Lawnchair</string>
+    <string name="onboarding_open_settings_title">Welcome to AethrX</string>
     <string name="onboarding_open_settings_subtitle">Appui long sur l\'écran d\'accueil pour ouvrir les paramètres</string>
     <string name="onboarding_major_upgrade_title">Bienvenue dans Lawnchair <xliff:g example="16" id="next_major_version">%1$d</xliff:g> !</string>
     <string name="onboarding_major_upgrade_subtitle">Découvrez les nouveautés !</string>

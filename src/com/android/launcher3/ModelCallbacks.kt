@@ -158,7 +158,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         launcher.viewCache.setCacheSize(R.layout.folder_page, 2)
         TraceHelper.INSTANCE.endSection()
         launcher.workspace.removeExtraEmptyScreen(/* stripEmptyScreens= */ true)
-        launcher.workspace.pageIndicator.setPauseScroll(
+        launcher.workspace.pageIndicator?.setPauseScroll(
             /*pause=*/ false,
             deviceProfile.deviceProperties.isTwoPanels,
         )
@@ -287,7 +287,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     }
 
     private fun bindScreens(orderedScreenIds: LIntArray) {
-        launcher.workspace.pageIndicator.setPauseScroll(
+        launcher.workspace.pageIndicator?.setPauseScroll(
             /*pause=*/ true,
             launcher.deviceProfile.deviceProperties.isTwoPanels,
         )

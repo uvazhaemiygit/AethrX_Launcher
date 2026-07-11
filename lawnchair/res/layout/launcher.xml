@@ -42,22 +42,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:theme="@style/HomeScreenElementTheme"
-            launcher:pageIndicator="@+id/page_indicator" />
+            android:theme="@style/HomeScreenElementTheme" />
 
         <!-- DO NOT CHANGE THE ID -->
         <include
             android:id="@+id/hotseat"
             layout="@layout/hotseat" />
-
-        <!-- Keep these behind the workspace so that they are not visible when
-         we go into AllApps -->
-        <com.android.launcher3.pageindicators.PageIndicatorDots
-            android:id="@+id/page_indicator"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/workspace_page_indicator_height"
-            android:layout_gravity="bottom|center_horizontal"
-            android:theme="@style/HomeScreenElementTheme" />
 
         <app.lawnchair.views.EditModePageStrip
             android:id="@+id/edit_mode_page_strip"

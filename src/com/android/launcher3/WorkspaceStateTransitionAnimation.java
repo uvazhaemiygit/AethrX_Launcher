@@ -153,8 +153,9 @@ public class WorkspaceStateTransitionAnimation {
         Interpolator workspaceFadeInterpolator = config.getInterpolator(ANIM_WORKSPACE_FADE,
                 pageAlphaProvider.interpolator);
         float workspacePageIndicatorAlpha = (elements & WORKSPACE_PAGE_INDICATOR) != 0 ? 1 : 0;
-        propertySetter.setViewAlpha(mLauncher.getWorkspace().getPageIndicator(),
-                workspacePageIndicatorAlpha, workspaceFadeInterpolator);
+        if (mLauncher.getWorkspace().getPageIndicator() != null)
+            propertySetter.setViewAlpha(mLauncher.getWorkspace().getPageIndicator(),
+                    workspacePageIndicatorAlpha, workspaceFadeInterpolator);
         Interpolator hotseatFadeInterpolator = config.getInterpolator(ANIM_HOTSEAT_FADE,
                 workspaceFadeInterpolator);
         float hotseatIconsAlpha = (elements & HOTSEAT_ICONS) != 0 ? 1 : 0;
@@ -189,8 +190,9 @@ public class WorkspaceStateTransitionAnimation {
                 ANIM_HOTSEAT_TRANSLATE, translationInterpolator);
         propertySetter.setFloat(hotseat, VIEW_TRANSLATE_Y,
                 hotseatScaleAndTranslation.translationY, hotseatTranslationInterpolator);
-        propertySetter.setFloat(mWorkspace.getPageIndicator(), VIEW_TRANSLATE_Y,
-                hotseatScaleAndTranslation.translationY, hotseatTranslationInterpolator);
+        if (mWorkspace.getPageIndicator() != null)
+            propertySetter.setFloat(mWorkspace.getPageIndicator(), VIEW_TRANSLATE_Y,
+                    hotseatScaleAndTranslation.translationY, hotseatTranslationInterpolator);
 
         if (!config.hasAnimationFlag(SKIP_SCRIM)) {
             setScrim(propertySetter, state, config);

@@ -43,6 +43,8 @@ import app.lawnchair.ui.preferences.destinations.HomeScreenPreferences
 import app.lawnchair.ui.preferences.destinations.IconPackPreferences
 import app.lawnchair.ui.preferences.destinations.IconPickerPreference
 import app.lawnchair.ui.preferences.destinations.LauncherPopupPreference
+import app.lawnchair.ui.preferences.destinations.AnimationPreferences
+import app.lawnchair.ui.preferences.destinations.ActivePlayerPreferences
 import app.lawnchair.ui.preferences.destinations.PickAppForGesture
 import app.lawnchair.ui.preferences.destinations.PreferencesDashboard
 import app.lawnchair.ui.preferences.destinations.QuickstepPreferences
@@ -185,6 +187,14 @@ fun PreferenceNavigation(
             deepLinks = getDeepLink(Gestures),
         ) { GesturePreferences() }
         composable<GesturesPickApp> { PickAppForGesture() }
+
+        composable<ActivePlayer>(
+            deepLinks = getDeepLink(ActivePlayer),
+        ) { ActivePlayerPreferences() }
+
+        composable<Animations>(
+            deepLinks = getDeepLink(Animations),
+        ) { AnimationPreferences() }
 
         composable<Quickstep>(
             deepLinks = getDeepLink(Quickstep),

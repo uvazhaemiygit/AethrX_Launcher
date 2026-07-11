@@ -58,6 +58,8 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
 import app.lawnchair.ui.preferences.navigation.About
+import app.lawnchair.ui.preferences.navigation.ActivePlayer
+import app.lawnchair.ui.preferences.navigation.Animations
 import app.lawnchair.ui.preferences.navigation.AppDrawer
 import app.lawnchair.ui.preferences.navigation.BackupAndRestore
 import app.lawnchair.ui.preferences.navigation.CreateBackup
@@ -237,6 +239,30 @@ fun PreferencesDashboard(
                     iconResource = R.drawable.backup_restore,
                     onNavigate = { onNavigate(BackupAndRestore) },
                     isSelected = currentRoute is BackupAndRestore,
+                    isFirst = it.isFirst,
+                    isLast = it.isLast,
+                )
+            }
+
+            Item {
+                PreferenceCategory(
+                    label = "Active Player",
+                    description = "Bluetooth audio banner & music app",
+                    iconResource = R.drawable.ic_music_note,
+                    onNavigate = { onNavigate(ActivePlayer) },
+                    isSelected = currentRoute is ActivePlayer,
+                    isFirst = it.isFirst,
+                    isLast = it.isLast,
+                )
+            }
+
+            Item {
+                PreferenceCategory(
+                    label = "Animations",
+                    description = "Animation speed & style",
+                    iconResource = R.drawable.ic_gestures,
+                    onNavigate = { onNavigate(Animations) },
+                    isSelected = currentRoute is Animations,
                     isFirst = it.isFirst,
                     isLast = it.isLast,
                 )

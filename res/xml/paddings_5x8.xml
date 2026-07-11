@@ -23,7 +23,7 @@
             launcher:a="0.31"
             launcher:b="0"/>
         <workspaceBottomPadding
-            launcher:a="0.69"
+            launcher:a="0"
             launcher:b="0"/>
         <hotseatBottomPadding
             launcher:a="0"
@@ -36,7 +36,7 @@
             launcher:a="0.48"
             launcher:b="0"/>
         <workspaceBottomPadding
-            launcher:a="0.52"
+            launcher:a="0"
             launcher:b="0"/>
         <hotseatBottomPadding
             launcher:a="0"

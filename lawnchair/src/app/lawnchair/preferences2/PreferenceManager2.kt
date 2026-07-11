@@ -51,6 +51,7 @@ import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.popup.toOptionOrderString
 import app.lawnchair.ui.preferences.components.HiddenAppsInSearch
 import app.lawnchair.ui.preferences.data.liveinfo.LiveInformationManager
+import app.lawnchair.animation.AnimationType
 import app.lawnchair.util.kotlinxJson
 import app.lawnchair.views.overlay.FullScreenOverlayMode
 import com.android.launcher3.BuildConfig
@@ -827,6 +828,28 @@ class PreferenceManager2 @Inject constructor(
     val backPressGestureHandler = serializablePreference<GestureHandlerConfig>(
         key = stringPreferencesKey("back_press_gesture_handler"),
         defaultValue = GestureHandlerConfig.NoOp,
+    )
+
+    val musicAppPackage = preference(
+        key = stringPreferencesKey(name = "audio_banner_music_app"),
+        defaultValue = "",
+    )
+
+    val bannerOpacity = preference(
+        key = floatPreferencesKey(name = "audio_banner_opacity"),
+        defaultValue = 1.0f,
+    )
+
+    val bannerPosition = preference(
+        key = floatPreferencesKey(name = "audio_banner_position"),
+        defaultValue = 0.3f,
+    )
+
+    val animationType = preference(
+        key = stringPreferencesKey(name = "launcher_animation_type"),
+        defaultValue = AnimationType.FAST,
+        parse = { AnimationType.fromValue(it) },
+        save = { it.value },
     )
 
     val autoUpdaterNightly = preference(

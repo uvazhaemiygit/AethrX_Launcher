@@ -1006,4 +1006,10 @@
     <string name="lawnchair_action_failed">Failed to trigger action</string>
 
     <string name="please_wait">Please wait…</string>
+
+    <!-- Bluetooth audio banner -->
+    <string name="unknown_device">Unknown Device</string>
+    <string name="battery_format">%d%%</string>
+    <string name="active_player">Active Player</string>
+    <string name="animations_label">Animations</string>
 </resources>

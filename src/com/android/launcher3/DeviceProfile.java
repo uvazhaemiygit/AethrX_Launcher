@@ -411,6 +411,7 @@ public class DeviceProfile {
                 R.dimen.workspace_page_indicator_height);
         workspacePageIndicatorHeight *= PreferenceCacheExtensionsKt
                 .firstCached(preferenceManager2.getPageIndicatorHeightFactor());
+        workspacePageIndicatorHeight = 0;
         mWorkspacePageIndicatorOverlapWorkspace =
                 res.getDimensionPixelSize(R.dimen.workspace_page_indicator_overlap_workspace);
 
@@ -1730,10 +1731,6 @@ public class DeviceProfile {
             // Pad the bottom of the workspace with hotseat bar
             // and leave a bit of space in case a widget go all the way down
             int paddingBottom = hotseatBarSizePx + workspaceBottomPadding - mInsets.bottom;
-            if (!mIsResponsiveGrid) {
-                paddingBottom +=
-                        workspacePageIndicatorHeight - mWorkspacePageIndicatorOverlapWorkspace;
-            }
             int paddingTop = workspaceTopPadding + (mIsScalableGrid ? 0 : edgeMarginPx);
             int paddingLeft = desiredWorkspaceHorizontalMarginPx;
             int paddingRight = desiredWorkspaceHorizontalMarginPx;

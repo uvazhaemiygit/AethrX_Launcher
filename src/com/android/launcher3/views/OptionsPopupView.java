@@ -211,8 +211,28 @@ public class OptionsPopupView<T extends Context & ActivityContext> extends Arrow
             OptionsPopupView::enterAllApps,
             OptionsPopupView::startWallpaperPicker,
             OptionsPopupView::onWidgetsClicked,
-            OptionsPopupView::startSettings
+            OptionsPopupView::startSettings,
+            OptionsPopupView::openActivePlayer,
+            OptionsPopupView::openAnimations
         );
+    }
+
+    private static boolean openActivePlayer(View view) {
+        Launcher launcher = Launcher.getLauncher(view.getContext());
+        Intent intent = app.lawnchair.ui.preferences.PreferenceActivity.Companion.createIntent(
+                view.getContext(), app.lawnchair.ui.preferences.navigation.ActivePlayer.INSTANCE);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        launcher.startActivitySafely(view, intent, placeholderInfo(intent));
+        return true;
+    }
+
+    private static boolean openAnimations(View view) {
+        Launcher launcher = Launcher.getLauncher(view.getContext());
+        Intent intent = app.lawnchair.ui.preferences.PreferenceActivity.Companion.createIntent(
+                view.getContext(), app.lawnchair.ui.preferences.navigation.Animations.INSTANCE);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        launcher.startActivitySafely(view, intent, placeholderInfo(intent));
+        return true;
     }
 
     /**

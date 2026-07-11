@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/audio_banner_container"
+    android:layout_width="72dp"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:id="@+id/banner_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/audio_device_banner_bg"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="4dp">
+
+        <FrameLayout
+            android:id="@+id/music_icon_container"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="center"
+            android:background="@drawable/audio_device_icon_bg"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/music_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="10sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:id="@+id/battery_level"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif"
+            android:layout_marginTop="2dp"
+            android:visibility="gone" />
+
+        <app.lawnchair.views.EqualizerView
+            android:id="@+id/equalizer"
+            android:layout_width="26dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="6dp"
+            android:layout_gravity="center" />
+
+    </LinearLayout>
+
+</FrameLayout>

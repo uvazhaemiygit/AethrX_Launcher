@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="36dp"
+    android:layout_height="48dp"
+    android:background="@drawable/audio_device_banner_bg"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center">
+
+    <ImageView
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_chevron_end"
+        android:importantForAccessibility="no" />
+
+</FrameLayout>

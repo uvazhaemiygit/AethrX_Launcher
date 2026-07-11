@@ -107,6 +107,8 @@ import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLIN
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.appwidget.AppWidgetHostView;
@@ -139,6 +141,7 @@ import android.util.Pair;
 import android.util.SparseArray;
 import android.view.InflateException;
 import android.view.KeyEvent;
+import android.view.animation.LinearInterpolator;
 import android.view.KeyboardShortcutGroup;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -1149,7 +1152,8 @@ public class Launcher extends StatefulActivity<LauncherState>
             mWorkspace.setClipChildren(false);
         }
         // When multiple pages are visible, show persistent page indicator
-        mWorkspace.getPageIndicator().setShouldAutoHide(!state.hasFlag(FLAG_MULTI_PAGE));
+        if (mWorkspace.getPageIndicator() != null)
+            mWorkspace.getPageIndicator().setShouldAutoHide(!state.hasFlag(FLAG_MULTI_PAGE));
 
         mPrevLauncherState = mStateManager.getCurrentStableState();
         if (mPrevLauncherState != state && ALL_APPS.equals(state)
@@ -1360,9 +1364,11 @@ public class Launcher extends StatefulActivity<LauncherState>
         mDropTargetBar.setup(mDragController);
         mAllAppsController.setupViews(mScrimView, mAppsView);
 
-        mWorkspace.getPageIndicator().setShouldAutoHide(true);
-        mWorkspace.getPageIndicator().setPaintColor(Themes.getAttrBoolean(
-                this, R.attr.isWorkspaceDarkText) ? Color.BLACK : Color.WHITE);
+        if (mWorkspace.getPageIndicator() != null) {
+            mWorkspace.getPageIndicator().setShouldAutoHide(true);
+            mWorkspace.getPageIndicator().setPaintColor(Themes.getAttrBoolean(
+                    this, R.attr.isWorkspaceDarkText) ? Color.BLACK : Color.WHITE);
+        }
 
         mDepthBlurTargets = List.of(mWorkspace, mHotseat);
     }
@@ -2384,10 +2390,17 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     private ValueAnimator createNewAppBounceAnimation(View v, int i) {
-        ValueAnimator bounceAnim = new PropertyListBuilder().alpha(1).scale(1).build(v)
-                .setDuration(ItemInstallQueue.NEW_SHORTCUT_BOUNCE_DURATION);
-        bounceAnim.setStartDelay(i * ItemInstallQueue.NEW_SHORTCUT_STAGGER_DELAY);
-        bounceAnim.setInterpolator(new OvershootInterpolator(BOUNCE_ANIMATION_TENSION));
+        int row = i / mDeviceProfile.inv.numColumns;
+        float offsetY = getDragLayer().getHeight() + v.getHeight();
+        v.setTranslationY(offsetY + row * 120f);
+        ValueAnimator bounceAnim = ObjectAnimator.ofPropertyValuesHolder(v,
+                PropertyValuesHolder.ofFloat("translationY", offsetY + row * 120f, 0f, -30f, 0f),
+                PropertyValuesHolder.ofFloat("scaleX", 0.85f, 1.08f, 1f),
+                PropertyValuesHolder.ofFloat("scaleY", 0.85f, 1.08f, 1f),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f)
+        ).setDuration(ItemInstallQueue.NEW_SHORTCUT_BOUNCE_DURATION + 50L);
+        bounceAnim.setStartDelay(i * 60L);
+        bounceAnim.setInterpolator(new LinearInterpolator());
         return bounceAnim;
     }
 
@@ -2734,7 +2747,8 @@ public class Launcher extends StatefulActivity<LauncherState>
     /** Pauses view updates that should not be run during the app launch animation. */
     public void pauseExpensiveViewUpdates() {
         // Pause page indicator animations as they lead to layer trashing.
-        getWorkspace().getPageIndicator().pauseAnimations();
+        if (getWorkspace().getPageIndicator() != null)
+            getWorkspace().getPageIndicator().pauseAnimations();
 
         getWorkspace().mapOverItems((info, view) -> {
             if (view instanceof LauncherAppWidgetHostView) {
@@ -2746,7 +2760,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     /** Resumes view updates at the end of the app launch animation. */
     public void resumeExpensiveViewUpdates() {
-        getWorkspace().getPageIndicator().skipAnimationsToEnd();
+        if (getWorkspace().getPageIndicator() != null)
+            getWorkspace().getPageIndicator().skipAnimationsToEnd();
 
         getWorkspace().mapOverItems((info, view) -> {
             if (view instanceof LauncherAppWidgetHostView) {

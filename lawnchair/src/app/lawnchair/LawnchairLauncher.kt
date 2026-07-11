@@ -52,6 +52,7 @@ import app.lawnchair.theme.ThemeProvider
 import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.popup.LawnchairShortcut
 import app.lawnchair.util.getThemedIconPacksInstalled
+import app.lawnchair.util.AudioDeviceBanner
 import app.lawnchair.util.unsafeLazy
 import app.lawnchair.views.LawnchairFloatingSurfaceView
 import com.android.launcher3.AbstractFloatingView
@@ -101,6 +102,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     private val appLaunchAnimator = AppLaunchAnimator(this)
     private var launchedAppView: View? = null
     private var wasScreenOff = false
+    private val audioDeviceBanner by unsafeLazy { AudioDeviceBanner(this) }
     private val preferenceManager2 by unsafeLazy { PreferenceManager2.getInstance(this) }
     private val insetsController: WindowInsetsControllerCompat by lazy {
         val window = launcher.window
@@ -169,9 +171,8 @@ class LawnchairLauncher : QuickstepLauncher() {
         }
         override fun onUserPresent() {
             if (wasScreenOff) {
-                workspaceAnimator.animateUnlock {
-                    wasScreenOff = false
-                }
+                wasScreenOff = false
+                workspaceAnimator.animateUnlock()
             }
         }
     }
@@ -271,6 +272,17 @@ class LawnchairLauncher : QuickstepLauncher() {
         reloadIconsIfNeeded()
 
         AppDatabase.INSTANCE.get(this).checkpointSync()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        audioDeviceBanner.register()
+        audioDeviceBanner.checkConnectedState()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        audioDeviceBanner.unregister()
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -449,13 +461,14 @@ class LawnchairLauncher : QuickstepLauncher() {
         restartIfPending()
 
         if (wasScreenOff) {
+            wasScreenOff = false
             if (stateManager.state == LauncherState.NORMAL) {
-                workspaceAnimator.animateUnlock {
-                    wasScreenOff = false
-                }
+                workspaceAnimator.animateUnlock()
             } else {
-                wasScreenOff = false
+                workspaceAnimator.resetAllIcons()
             }
+        } else {
+            workspaceAnimator.resetAllIcons()
         }
 
         val sourceView = launchedAppView
@@ -488,17 +501,14 @@ class LawnchairLauncher : QuickstepLauncher() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (!wasScreenOff && stateManager.state == LauncherState.NORMAL) {
-            if (hasFocus) {
-                workspaceAnimator.animateShadeClosed()
-            } else {
-                workspaceAnimator.animateShadeOpened()
-            }
+        if (!wasScreenOff && hasFocus && stateManager.state == LauncherState.NORMAL) {
+            workspaceAnimator.resetAllIcons()
         }
     }
 
     override fun onDestroy() {
         ScreenOnTracker.INSTANCE.get(this).removeListener(screenAnimListener)
+        audioDeviceBanner.dismiss()
         super.onDestroy()
         // Only actually closes if required, safe to call if not enabled
         SmartspacerClient.close()

@@ -403,6 +403,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     }
 
     private void setPageIndicatorInset() {
+        if (mPageIndicator == null) return;
         DeviceProfile grid = mLauncher.getDeviceProfile();
 
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) mPageIndicator.getLayoutParams();

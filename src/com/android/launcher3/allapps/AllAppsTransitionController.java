@@ -219,7 +219,8 @@ public class AllAppsTransitionController
 
         if (mIsVerticalLayout) {
             mLauncher.getHotseat().setTranslationY(0);
-            mLauncher.getWorkspace().getPageIndicator().setTranslationY(0);
+            if (mLauncher.getWorkspace().getPageIndicator() != null)
+                mLauncher.getWorkspace().getPageIndicator().setTranslationY(0);
         }
 
         mShouldShowAllAppsOnSheet = dp.shouldShowAllAppsOnSheet();

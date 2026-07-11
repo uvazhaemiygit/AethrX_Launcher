@@ -194,6 +194,16 @@ data class SelectIcon(
 data class IconPicker(val packageName: String = "") : PreferenceRoute
 
 @Serializable
+data object ActivePlayer : PreferenceRootRoute, PreferenceDeepLink {
+    override val deepLink = "$URI/active-player"
+}
+
+@Serializable
+data object Animations : PreferenceRootRoute, PreferenceDeepLink {
+    override val deepLink = "$URI/animations"
+}
+
+@Serializable
 data class ColorSelection(val prefKey: String) : PreferenceRoute
 
 @Serializable
